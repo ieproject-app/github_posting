@@ -1,306 +1,282 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Leap-Day Post Generator</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Markdown parser for preview -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-</head>
-<body class="bg-gray-50 p-6">
-  <div class="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
-    <h1 class="text-2xl font-bold mb-6">Leap-Day Theme Post Generator</h1>
-    <form id="post-form" class="space-y-4" autocomplete="off">
-      <div>
-        <label class="block font-medium">Title</label>
-        <input type="text" id="title" class="w-full border rounded p-2" placeholder="Masukkan judul postingan" required autofocus />
-      </div>
-      <div>
-        <label class="block font-medium">Date</label>
-        <input type="date" id="date" class="w-full border rounded p-2" required />
-      </div>
-      <div>
-        <label class="block font-medium">Permalink (opsional)</label>
-        <input type="text" id="permalink" class="w-full border rounded p-2" placeholder="/kategori/slug/ atau kosongkan untuk default" />
-      </div>
-      <div>
-        <label class="block font-medium">Description</label>
-        <textarea id="description" rows="2" class="w-full border rounded p-2" placeholder="Deskripsi singkat..." required></textarea>
-      </div>
-      <div>
-        <label class="inline-flex items-center">
-          <input type="checkbox" id="show_downloads" class="form-checkbox" />
-          <span class="ml-2">Show Downloads</span>
+import React, { useState } from "react";
+
+// Emoji rekomendasi untuk topik umum, bisa diupgrade sesuai kebutuhan
+const emojiMap = {
+  Pendahuluan: "📚",
+  Subjudul1: "💡",
+  Subjudul2: "🛠️",
+  Subjudul3: "🖼️",
+  Kesimpulan: "✅",
+  default: "✍️"
+};
+
+// Utility untuk slug judul
+function slugify(text: string) {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}
+
+// Utility tanggal
+function getDateStr() {
+  const tzOffset = 7 * 60 * 60 * 1000; // +0700
+  const d = new Date(Date.now() + tzOffset);
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  return (
+    `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}` +
+    ` ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())} +0700`
+  );
+}
+
+type FormState = {
+  judul: string;
+  kategori: string[];
+  penulis: string;
+  deskripsi: string;
+  target_pembaca: string;
+  poin_kunci: string[];
+  bahasa_kode: string;
+  nama_file_gambar: string;
+  alt_text_gambar: string;
+};
+
+const defaultForm: FormState = {
+  judul: "",
+  kategori: [],
+  penulis: "",
+  deskripsi: "",
+  target_pembaca: "",
+  poin_kunci: [],
+  bahasa_kode: "",
+  nama_file_gambar: "",
+  alt_text_gambar: ""
+};
+
+function getFileName(judul: string) {
+  const date = new Date();
+  const yyyy = date.getFullYear();
+  const mm = (date.getMonth() + 1).toString().padStart(2, "0");
+  const dd = date.getDate().toString().padStart(2, "0");
+  const slug = slugify(judul || "judul-postingan");
+  return `${yyyy}-${mm}-${dd}-${slug}.md`;
+}
+
+function getMarkdown(form: FormState) {
+  // Placeholder
+  const judul = form.judul || "Judul Postingan";
+  const kategori = form.kategori.length
+    ? form.kategori.slice(0, 2)
+    : ["kategori1", "kategori2"];
+  const penulis = form.penulis || "Nama Penulis";
+  const deskripsi = form.deskripsi || "Deskripsi singkat untuk SEO.";
+  const target_pembaca = form.target_pembaca || "Pemula";
+  const poin_kunci =
+    form.poin_kunci.length >= 3
+      ? form.poin_kunci
+      : ["Poin penting 1", "Poin penting 2", "Poin penting 3"];
+  const bahasa_kode = form.bahasa_kode || "python";
+  const nama_file_gambar = form.nama_file_gambar
+    ? form.nama_file_gambar.replace(/\s+/g, "-")
+    : "placeholder.jpg";
+  const alt_text_gambar = form.alt_text_gambar || "Deskripsi gambar";
+  const date = getDateStr();
+
+  // Emoji logic
+  const emojiJudul = "📝";
+  const emojiPendahuluan = emojiMap["Pendahuluan"];
+  const emojiSub1 = emojiMap["Subjudul1"];
+  const emojiSub2 = emojiMap["Subjudul2"];
+  const emojiSub3 = emojiMap["Subjudul3"];
+  const emojiKesimpulan = emojiMap["Kesimpulan"];
+
+  return `---
+layout: post
+title: "${judul} ${emojiJudul}"
+date: ${date}
+categories: [${kategori.join(", ")}]
+author: ${penulis}
+image: /assets/img/${nama_file_gambar}
+description: "${deskripsi}"
+---
+
+## Pendahuluan ${emojiPendahuluan}
+
+Selamat datang! Artikel ini ditujukan untuk ${target_pembaca}. Pada postingan kali ini kita akan membahas ${judul.toLowerCase()}.
+
+## Poin Penting ${emojiSub1}
+
+${poin_kunci.map((p) => `- ${p}`).join("\n")}
+
+## Contoh Kode ${emojiSub2}
+
+Berikut contoh kode terkait topik ini:
+
+\`\`\`${bahasa_kode}
+# Kode contoh di sini
+\`\`\`
+
+## Ilustrasi ${emojiSub3}
+
+![${alt_text_gambar}](/assets/img/${nama_file_gambar})
+
+| Kolom 1 | Kolom 2 |
+|---------|---------|
+| Baris 1 | Data    |
+| Baris 2 | Data    |
+
+## Kesimpulan ${emojiKesimpulan}
+
+Demikian pembahasan singkat mengenai ${judul.toLowerCase()}. Semoga bermanfaat!
+
+---
+
+**Apa pendapatmu tentang topik ini? Yuk diskusi di kolom komentar!**
+
+---
+
+_Simpan file di folder_ **_posts/_** _dan upload gambar ke_ **/assets/img/**_
+
+
+<!--
+Tips Otomatis:
+- SEO: Pastikan keyword muncul di judul, deskripsi, dan heading.
+- Gunakan alt text deskriptif pada gambar.
+- Tulis deskripsi 1 kalimat untuk front matter.
+- Mobile Friendly: gambar max lebar 1200px, tabel sederhana, bullet points.
+- Emoji: tambahkan emoji relevan di judul & subjudul.
+- Format nama file: YYYY-MM-DD-judul-dengan-hyphen.md
+- Rekomendasi gambar gratis: Unsplash, Pexels, Pixabay.
+-->
+`;
+}
+
+export default function WebToolsGenerator() {
+  const [form, setForm] = useState<FormState>(defaultForm);
+  const [markdown, setMarkdown] = useState("");
+  const [fileName, setFileName] = useState("");
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: value
+    }));
+  }
+
+  function handleKategoriChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const arr = e.target.value
+      .split(",")
+      .map((x) => x.trim())
+      .filter((x) => !!x);
+    setForm((prev) => ({
+      ...prev,
+      kategori: arr
+    }));
+  }
+
+  function handlePoinChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    const arr = e.target.value
+      .split("\n")
+      .map((x) => x.trim())
+      .filter((x) => !!x);
+    setForm((prev) => ({
+      ...prev,
+      poin_kunci: arr
+    }));
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const md = getMarkdown(form);
+    setMarkdown(md);
+    setFileName(getFileName(form.judul));
+  }
+
+  return (
+    <div style={{ maxWidth: 700, margin: "2rem auto", fontFamily: "sans-serif" }}>
+      <h2>Web Tools: Jekyll Post Generator 🚀</h2>
+      <form onSubmit={handleSubmit} style={{ background: "#f9f9f9", padding: 20, borderRadius: 8 }}>
+        <label>
+          Judul postingan*<br />
+          <input name="judul" value={form.judul} onChange={handleChange} required style={{ width: "100%" }} />
         </label>
-      </div>
-      <div>
-        <label class="block font-medium">Google Analytics ID</label>
-        <input type="text" id="ga_id" class="w-full border rounded p-2" placeholder="UA-XXXXX-Y" />
-      </div>
-      <div>
-        <label class="block font-medium">Tags (pisahkan dengan koma)</label>
-        <input type="text" id="tags" class="w-full border rounded p-2" placeholder="jekyll, leap-day, tutorial" />
-      </div>
-      <!-- Insert Image Tool -->
-      <div>
-        <label class="block font-medium">Insert Image</label>
-        <div class="flex gap-2 mb-2">
-          <input type="text" id="img-url" class="w-full border rounded p-2" placeholder="https://... atau /assets/img/myimg.png" />
-          <input type="text" id="img-alt" class="w-1/3 border rounded p-2" placeholder="Alt text" />
-          <button type="button" id="insert-img-btn" class="bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700">Insert</button>
-        </div>
-        <small class="text-gray-500">Masukkan URL gambar atau path lokal (misal: /assets/img/...).</small>
-      </div>
-      <!-- Formatting Tools -->
-      <div>
-        <label class="block font-medium mb-1">Formatting Tools</label>
-        <div class="flex flex-wrap gap-2 mb-2">
-          <button type="button" class="fmt-btn bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded text-xs" data-fmt="h1">H1</button>
-          <button type="button" class="fmt-btn bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded text-xs" data-fmt="h2">H2</button>
-          <button type="button" class="fmt-btn bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded text-xs" data-fmt="h3">H3</button>
-          <button type="button" class="fmt-btn bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded text-xs" data-fmt="bold">Bold</button>
-          <button type="button" class="fmt-btn bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded text-xs" data-fmt="italic">Italic</button>
-          <button type="button" class="fmt-btn bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded text-xs" data-fmt="ulist">List</button>
-          <button type="button" class="fmt-btn bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded text-xs" data-fmt="olist">Numbered</button>
-          <button type="button" class="fmt-btn bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded text-xs" data-fmt="code">Code</button>
-          <button type="button" class="fmt-btn bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded text-xs" data-fmt="quote">Quote</button>
-          <button type="button" class="fmt-btn bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded text-xs" data-fmt="hr">HR</button>
-          <button type="button" class="fmt-btn bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded text-xs" data-fmt="link">Link</button>
-        </div>
-        <small class="text-gray-500">Klik tombol untuk memasukkan format markdown di posisi kursor.</small>
-      </div>
-      <div>
-        <label class="block font-medium">Content</label>
-        <textarea id="content" rows="8" class="w-full border rounded p-2 font-mono" placeholder="Tulis konten postingan di sini..."></textarea>
-      </div>
-      <div class="flex gap-2">
-        <button type="button" id="generate-btn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Generate Markdown & Filename</button>
-        <button type="reset" class="bg-gray-200 text-gray-600 px-4 py-2 rounded hover:bg-gray-300">Reset</button>
-      </div>
-    </form>
+        <br /><br />
+        <label>
+          Kategori utama (maks 2, pisahkan koma)*<br />
+          <input name="kategori" value={form.kategori.join(", ")} onChange={handleKategoriChange} required style={{ width: "100%" }} />
+        </label>
+        <br /><br />
+        <label>
+          Nama penulis*<br />
+          <input name="penulis" value={form.penulis} onChange={handleChange} required style={{ width: "100%" }} />
+        </label>
+        <br /><br />
+        <label>
+          Deskripsi singkat (SEO, 1 kalimat)*<br />
+          <input name="deskripsi" value={form.deskripsi} onChange={handleChange} required style={{ width: "100%" }} />
+        </label>
+        <br /><br />
+        <label>
+          Target pembaca<br />
+          <input name="target_pembaca" value={form.target_pembaca} onChange={handleChange} style={{ width: "100%" }} />
+        </label>
+        <br /><br />
+        <label>
+          Poin-poin kunci (minimal 3, 1 baris per poin)*<br />
+          <textarea name="poin_kunci" value={form.poin_kunci.join("\n")} onChange={handlePoinChange} rows={3} required style={{ width: "100%" }} />
+        </label>
+        <br /><br />
+        <label>
+          Bahasa pemrograman untuk blok kode (python, html, js, dll)*<br />
+          <input name="bahasa_kode" value={form.bahasa_kode} onChange={handleChange} required style={{ width: "100%" }} />
+        </label>
+        <br /><br />
+        <label>
+          Nama file gambar (opsional, contoh: gambar.jpg)<br />
+          <input name="nama_file_gambar" value={form.nama_file_gambar} onChange={handleChange} style={{ width: "100%" }} />
+        </label>
+        <br /><br />
+        <label>
+          Alt text gambar (SEO, aksesibilitas)*<br />
+          <input name="alt_text_gambar" value={form.alt_text_gambar} onChange={handleChange} required style={{ width: "100%" }} />
+        </label>
+        <br /><br />
+        <button type="submit" style={{ padding: "8px 24px", fontWeight: "bold" }}>
+          Generate Markdown
+        </button>
+      </form>
 
-    <div class="mt-6 space-y-4">
-      <div>
-        <label class="block font-medium">Suggested File Path</label>
-        <div class="flex items-center gap-2">
-          <input type="text" id="filename" class="w-full border rounded p-2 font-mono text-sm bg-gray-100" readonly />
-          <button onclick="copyToClipboard('filename')" class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300" title="Copy">📋</button>
-        </div>
-      </div>
-      <div>
-        <label class="block font-medium">Permalink Preview</label>
-        <input type="text" id="permalink-preview" class="w-full border rounded p-2 font-mono text-sm bg-gray-100" readonly />
-      </div>
-      <div>
-        <label class="block font-medium mb-2">Hasil Front Matter & Content</label>
-        <div class="flex gap-2">
-          <textarea id="output" rows="12" class="w-full border rounded p-2 font-mono text-sm" readonly></textarea>
-          <button onclick="copyToClipboard('output')" class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300" title="Copy">📋</button>
-        </div>
-      </div>
-      <div>
-        <label class="block font-medium mb-2">Markdown Preview</label>
-        <div id="preview-content" class="prose bg-gray-50 p-4 rounded overflow-x-auto"></div>
-      </div>
+      {markdown && (
+        <>
+          <h3>Hasil File Markdown:</h3>
+          <div style={{ background: "#222", color: "#eee", padding: 10, borderRadius: 5, marginTop: 20 }}>
+            <div style={{ fontSize: "0.95em", marginBottom: 5 }}>
+              <b>Nama file:</b> <code>{fileName}</code>
+            </div>
+            <pre style={{ whiteSpace: "pre-wrap", overflowX: "auto" }}>
+              {``
+                + "```markdown name=" + fileName + "\n"
+                + markdown
+                + "```"
+              }
+            </pre>
+          </div>
+          <div style={{ marginTop: 20, fontSize: "0.95em", color: "#555" }}>
+            <b>Tips Otomatis:</b>
+            <ul>
+              <li>SEO: Pastikan keyword muncul di judul, deskripsi, dan heading.</li>
+              <li>Gunakan alt text deskriptif pada gambar.</li>
+              <li>Tulis deskripsi 1 kalimat untuk front matter.</li>
+              <li>Mobile Friendly: gambar max lebar 1200px, tabel sederhana, bullet points.</li>
+              <li>Emoji: tambahkan emoji relevan di judul & subjudul.</li>
+              <li>Format nama file: <i>YYYY-MM-DD-judul-dengan-hyphen.md</i></li>
+              <li>Rekomendasi gambar gratis: <a href="https://unsplash.com/">Unsplash</a>, <a href="https://www.pexels.com/">Pexels</a>, <a href="https://pixabay.com/">Pixabay</a></li>
+            </ul>
+          </div>
+        </>
+      )}
     </div>
-    <div id="toast" class="fixed bottom-4 right-4 bg-green-600 text-white px-4 py-2 rounded shadow-lg z-50 hidden"></div>
-  </div>
-
-  <script>
-    // Autofill date
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('date').value = new Date().toISOString().substr(0, 10);
-      document.getElementById('title').focus();
-    });
-
-    // Slugify function (support unicode, dash, trim)
-    function slugify(str) {
-      return str.toString().toLowerCase()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove accents
-        .replace(/[^a-z0-9\s-]/g, '') // Remove non-word
-        .replace(/\s+/g, '-')         // Replace space with -
-        .replace(/-+/g, '-')          // Replace multiple - with single -
-        .replace(/^-+|-+$/g, '');     // Trim - from start/end
-    }
-
-    function copyToClipboard(id) {
-      const el = document.getElementById(id);
-      el.select();
-      el.setSelectionRange(0, 99999);
-      document.execCommand("copy");
-      showToast("Copied!");
-    }
-
-    function showToast(msg) {
-      const toast = document.getElementById('toast');
-      toast.textContent = msg;
-      toast.classList.remove('hidden');
-      setTimeout(() => toast.classList.add('hidden'), 1200);
-    }
-
-    function generateFrontMatter(data) {
-      let fm = `---\n`;
-      fm += `title: \"${data.title}\"\n`;
-      fm += `description: \"${data.description.replace(/\n/g, ' ')}\"\n`;
-      fm += `date: ${data.date}\n`;
-      if (data.permalinkInput) fm += `permalink: ${data.permalink}\n`;
-      fm += `show_downloads: ${data.showDownloads}\n`;
-      if (data.gaId) fm += `google_analytics: ${data.gaId}\n`;
-      if (data.tags.length) fm += `tags: [${data.tags.map(t => `\"${t}\"`).join(', ')}]\n`;
-      fm += `---\n\n`;
-      fm += data.content;
-      return fm;
-    }
-
-    function autoPermalink(input, slug) {
-      let val = input || `/${slug}/`;
-      if (!val.startsWith('/')) val = '/' + val;
-      if (!val.endsWith('/')) val += '/';
-      return val;
-    }
-
-    function saveDraft(fields) {
-      localStorage.setItem('leapDayDraft', JSON.stringify(fields));
-    }
-
-    function loadDraft() {
-      const d = localStorage.getItem('leapDayDraft');
-      if (d) {
-        const f = JSON.parse(d);
-        Object.keys(f).forEach(k => {
-          if (document.getElementById(k)) {
-            if (document.getElementById(k).type === 'checkbox') {
-              document.getElementById(k).checked = f[k];
-            } else {
-              document.getElementById(k).value = f[k];
-            }
-          }
-        });
-      }
-    }
-
-    // Save draft on input changes
-    document.querySelectorAll('#post-form input, #post-form textarea').forEach(el => {
-      el.addEventListener('input', () => {
-        const fields = {};
-        document.querySelectorAll('#post-form input, #post-form textarea').forEach(inp => {
-          fields[inp.id] = inp.type === 'checkbox' ? inp.checked : inp.value;
-        });
-        saveDraft(fields);
-      });
-    });
-
-    document.getElementById('generate-btn').addEventListener('click', () => {
-      // Get values
-      const title = document.getElementById('title').value.trim();
-      const date = document.getElementById('date').value;
-      const permalinkInput = document.getElementById('permalink').value.trim();
-      const description = document.getElementById('description').value.trim();
-      const showDownloads = document.getElementById('show_downloads').checked;
-      const gaId = document.getElementById('ga_id').value.trim();
-      const tags = document.getElementById('tags').value.split(',').map(t => t.trim()).filter(Boolean);
-      const content = document.getElementById('content').value;
-
-      if (!title || !date || !description) {
-        showToast("Field wajib tidak boleh kosong!");
-        return;
-      }
-
-      const slug = slugify(title);
-      if (!slug) {
-        showToast("Judul harus menghasilkan slug yang valid!");
-        return;
-      }
-
-      // Generate file path (DD/MMYYYY/slug.md)
-      const [year, month, day] = date.split('-');
-      const monthYear = `${month}${year}`;
-      const filepath = `${day}/${monthYear}/${slug}.md`;
-      document.getElementById('filename').value = filepath;
-
-      // Permalink preview
-      const permalink = autoPermalink(permalinkInput, slug);
-      document.getElementById('permalink-preview').value = permalink;
-
-      // Generate front matter
-      const fm = generateFrontMatter({title, description, date, permalinkInput, permalink, showDownloads, gaId, tags, content});
-      document.getElementById('output').value = fm;
-
-      // Markdown preview
-      document.getElementById('preview-content').innerHTML = marked.parse(content || '');
-
-      showToast("Generated!");
-    });
-
-    // Load local draft if exists
-    window.onload = loadDraft;
-
-    // Insert image markdown at cursor in content textarea
-    document.getElementById('insert-img-btn').addEventListener('click', () => {
-      const url = document.getElementById('img-url').value.trim();
-      const alt = document.getElementById('img-alt').value.trim() || "Image";
-      if (!url) {
-        showToast("URL gambar tidak boleh kosong");
-        return;
-      }
-      const md = `![${alt}](${url})`;
-      insertAtCursor('content', md);
-      document.getElementById('img-url').value = '';
-      document.getElementById('img-alt').value = '';
-      document.getElementById('content').focus();
-    });
-
-    // Formatting tools
-    function insertAtCursor(id, text, selOffset = null) {
-      const el = document.getElementById(id);
-      const start = el.selectionStart;
-      const end = el.selectionEnd;
-      const before = el.value.substring(0, start);
-      const after = el.value.substring(end);
-      el.value = before + text + after;
-      el.focus();
-      if (selOffset !== null) {
-        el.selectionStart = el.selectionEnd = start + selOffset;
-      } else {
-        el.selectionStart = el.selectionEnd = start + text.length;
-      }
-      // Update preview
-      document.getElementById('preview-content').innerHTML = marked.parse(el.value);
-    }
-
-    function getSelectedText(id) {
-      const el = document.getElementById(id);
-      return el.value.substring(el.selectionStart, el.selectionEnd);
-    }
-
-    document.querySelectorAll('.fmt-btn').forEach(btn => {
-      btn.addEventListener('click', function() {
-        const fmt = this.getAttribute('data-fmt');
-        let insertText = '';
-        let sel = getSelectedText('content');
-        let offset = null;
-        switch(fmt) {
-          case 'h1': insertText = `# ${sel || 'Judul H1'}\n`; offset = sel ? (2+sel.length) : 3; break;
-          case 'h2': insertText = `## ${sel || 'Judul H2'}\n`; offset = sel ? (3+sel.length) : 4; break;
-          case 'h3': insertText = `### ${sel || 'Judul H3'}\n`; offset = sel ? (4+sel.length) : 5; break;
-          case 'bold': insertText = `**${sel || 'tebal'}**`; offset = sel ? (2+sel.length) : 2; break;
-          case 'italic': insertText = `*${sel || 'miring'}*`; offset = sel ? (1+sel.length) : 1; break;
-          case 'ulist': insertText = `- ${sel || 'item list'}\n`; offset = sel ? (2+sel.length) : 3; break;
-          case 'olist': insertText = `1. ${sel || 'item list'}\n`; offset = sel ? (3+sel.length) : 4; break;
-          case 'code': insertText = `\`\`\`\n${sel || 'kode'}\n\`\`\`\n`; offset = sel ? (4+sel.length) : 8; break;
-          case 'quote': insertText = `> ${sel || 'kutipan'}\n`; offset = sel ? (2+sel.length) : 3; break;
-          case 'hr': insertText = `\n---\n`; offset = 5; break;
-          case 'link': insertText = `[${sel || 'teks'}](url)`; offset = sel ? (1+sel.length) : 1; break;
-        }
-        insertAtCursor('content', insertText, offset);
-      });
-    });
-
-    // Live preview update on typing
-    document.getElementById('content').addEventListener('input', () => {
-      document.getElementById('preview-content').innerHTML = marked.parse(document.getElementById('content').value);
-    });
-  </script>
-</body>
-</html>
+  );
+}
