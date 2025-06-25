@@ -4,20 +4,25 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Leap-Day Post Generator</title>
-  <!-- Tailwind CSS untuk styling cepat -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Markdown parser for preview -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body class="bg-gray-50 p-6">
   <div class="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
     <h1 class="text-2xl font-bold mb-6">Leap-Day Theme Post Generator</h1>
-    <form id="post-form" class="space-y-4">
+    <form id="post-form" class="space-y-4" autocomplete="off">
       <div>
         <label class="block font-medium">Title</label>
-        <input type="text" id="title" class="w-full border rounded p-2" placeholder="Masukkan judul postingan" required />
+        <input type="text" id="title" class="w-full border rounded p-2" placeholder="Masukkan judul postingan" required autofocus />
       </div>
       <div>
         <label class="block font-medium">Date</label>
         <input type="date" id="date" class="w-full border rounded p-2" required />
+      </div>
+      <div>
+        <label class="block font-medium">Permalink (opsional)</label>
+        <input type="text" id="permalink" class="w-full border rounded p-2" placeholder="/kategori/slug/ atau kosongkan untuk default" />
       </div>
       <div>
         <label class="block font-medium">Description</label>
@@ -41,47 +46,161 @@
         <label class="block font-medium">Content</label>
         <textarea id="content" rows="6" class="w-full border rounded p-2" placeholder="Tulis konten postingan di sini..."></textarea>
       </div>
-      <button type="button" id="generate-btn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Generate Markdown</button>
+      <div class="flex gap-2">
+        <button type="button" id="generate-btn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Generate Markdown & Filename</button>
+        <button type="reset" class="bg-gray-200 text-gray-600 px-4 py-2 rounded hover:bg-gray-300">Reset</button>
+      </div>
     </form>
 
-    <div class="mt-6">
-      <label class="block font-medium mb-2">Hasil Front Matter & Content</label>
-      <textarea id="output" rows="12" class="w-full border rounded p-2 font-mono text-sm" readonly></textarea>
+    <div class="mt-6 space-y-4">
+      <div>
+        <label class="block font-medium">Suggested File Path</label>
+        <div class="flex items-center gap-2">
+          <input type="text" id="filename" class="w-full border rounded p-2 font-mono text-sm bg-gray-100" readonly />
+          <button onclick="copyToClipboard('filename')" class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300" title="Copy">📋</button>
+        </div>
+      </div>
+      <div>
+        <label class="block font-medium">Permalink Preview</label>
+        <input type="text" id="permalink-preview" class="w-full border rounded p-2 font-mono text-sm bg-gray-100" readonly />
+      </div>
+      <div>
+        <label class="block font-medium mb-2">Hasil Front Matter & Content</label>
+        <div class="flex gap-2">
+          <textarea id="output" rows="12" class="w-full border rounded p-2 font-mono text-sm" readonly></textarea>
+          <button onclick="copyToClipboard('output')" class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300" title="Copy">📋</button>
+        </div>
+      </div>
+      <div>
+        <label class="block font-medium mb-2">Markdown Preview</label>
+        <div id="preview-content" class="prose bg-gray-50 p-4 rounded"></div>
+      </div>
     </div>
+    <div id="toast" class="fixed bottom-4 right-4 bg-green-600 text-white px-4 py-2 rounded shadow-lg z-50 hidden"></div>
   </div>
 
   <script>
-    // Set default date ke hari ini
+    // Autofill date
     document.addEventListener('DOMContentLoaded', () => {
-      const today = new Date().toISOString().substr(0, 10);
-      document.getElementById('date').value = today;
+      document.getElementById('date').value = new Date().toISOString().substr(0, 10);
+      document.getElementById('title').focus();
     });
 
-    // Generate markdown saat tombol diklik
+    // Slugify function (support unicode, dash, trim)
+    function slugify(str) {
+      return str.toString().toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove accents
+        .replace(/[^a-z0-9\s-]/g, '') // Remove non-word
+        .replace(/\s+/g, '-')         // Replace space with -
+        .replace(/-+/g, '-')          // Replace multiple - with single -
+        .replace(/^-+|-+$/g, '');     // Trim - from start/end
+    }
+
+    function copyToClipboard(id) {
+      const el = document.getElementById(id);
+      el.select();
+      el.setSelectionRange(0, 99999);
+      document.execCommand("copy");
+      showToast("Copied!");
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 1200);
+    }
+
+    function generateFrontMatter(data) {
+      let fm = `---\n`;
+      fm += `title: \"${data.title}\"\n`;
+      fm += `description: \"${data.description.replace(/\n/g, ' ')}\"\n`;
+      fm += `date: ${data.date}\n`;
+      if (data.permalinkInput) fm += `permalink: ${data.permalink}\n`;
+      fm += `show_downloads: ${data.showDownloads}\n`;
+      if (data.gaId) fm += `google_analytics: ${data.gaId}\n`;
+      if (data.tags.length) fm += `tags: [${data.tags.map(t => `\"${t}\"`).join(', ')}]\n`;
+      fm += `---\n\n`;
+      fm += data.content;
+      return fm;
+    }
+
+    function autoPermalink(input, slug) {
+      let val = input || `/${slug}/`;
+      if (!val.startsWith('/')) val = '/' + val;
+      if (!val.endsWith('/')) val += '/';
+      return val;
+    }
+
+    function saveDraft(fields) {
+      localStorage.setItem('leapDayDraft', JSON.stringify(fields));
+    }
+
+    function loadDraft() {
+      const d = localStorage.getItem('leapDayDraft');
+      if (d) {
+        const f = JSON.parse(d);
+        Object.keys(f).forEach(k => {
+          if (document.getElementById(k)) document.getElementById(k).value = f[k];
+        });
+      }
+    }
+
+    // Save draft on input changes
+    document.querySelectorAll('#post-form input, #post-form textarea').forEach(el => {
+      el.addEventListener('input', () => {
+        const fields = {};
+        document.querySelectorAll('#post-form input, #post-form textarea').forEach(inp => {
+          fields[inp.id] = inp.type === 'checkbox' ? inp.checked : inp.value;
+        });
+        saveDraft(fields);
+      });
+    });
+
     document.getElementById('generate-btn').addEventListener('click', () => {
+      // Get values
       const title = document.getElementById('title').value.trim();
       const date = document.getElementById('date').value;
+      const permalinkInput = document.getElementById('permalink').value.trim();
       const description = document.getElementById('description').value.trim();
       const showDownloads = document.getElementById('show_downloads').checked;
       const gaId = document.getElementById('ga_id').value.trim();
-      const tags = document.getElementById('tags').value
-        .split(',')
-        .map(t => t.trim())
-        .filter(Boolean);
+      const tags = document.getElementById('tags').value.split(',').map(t => t.trim()).filter(Boolean);
       const content = document.getElementById('content').value;
 
-      let fm = `---\n`;
-      fm += `title: \"${title}\"\n`;
-      fm += `description: \"${description}\"\n`;
-      fm += `date: ${date}\n`;
-      fm += `show_downloads: ${showDownloads}\n`;
-      if (gaId) fm += `google_analytics: ${gaId}\n`;
-      if (tags.length) fm += `tags: [${tags.map(t => `\"${t}\"`).join(', ')}]\n`;
-      fm += `---\n\n`;
-      fm += content;
+      if (!title || !date || !description) {
+        showToast("Field wajib tidak boleh kosong!");
+        return;
+      }
 
+      const slug = slugify(title);
+      if (!slug) {
+        showToast("Judul harus menghasilkan slug yang valid!");
+        return;
+      }
+
+      // Generate file path (DD/MMYYYY/slug.md)
+      const [year, month, day] = date.split('-');
+      const monthYear = `${month}${year}`;
+      const filepath = `${day}/${monthYear}/${slug}.md`;
+      document.getElementById('filename').value = filepath;
+
+      // Permalink preview
+      const permalink = autoPermalink(permalinkInput, slug);
+      document.getElementById('permalink-preview').value = permalink;
+
+      // Generate front matter
+      const fm = generateFrontMatter({title, description, date, permalinkInput, permalink, showDownloads, gaId, tags, content});
       document.getElementById('output').value = fm;
+
+      // Markdown preview
+      document.getElementById('preview-content').innerHTML = marked.parse(content || '');
+
+      showToast("Generated!");
     });
+
+    // Load local draft if exists
+    window.onload = loadDraft;
   </script>
 </body>
 </html>
