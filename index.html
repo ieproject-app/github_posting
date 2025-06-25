@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Leap-Day Post Generator</title>
+  <!-- Tailwind CSS untuk styling cepat -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-6">
+  <div class="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
+    <h1 class="text-2xl font-bold mb-6">Leap-Day Theme Post Generator</h1>
+    <form id="post-form" class="space-y-4">
+      <div>
+        <label class="block font-medium">Title</label>
+        <input type="text" id="title" class="w-full border rounded p-2" placeholder="Masukkan judul postingan" required />
+      </div>
+      <div>
+        <label class="block font-medium">Date</label>
+        <input type="date" id="date" class="w-full border rounded p-2" required />
+      </div>
+      <div>
+        <label class="block font-medium">Description</label>
+        <textarea id="description" rows="2" class="w-full border rounded p-2" placeholder="Deskripsi singkat..." required></textarea>
+      </div>
+      <div>
+        <label class="inline-flex items-center">
+          <input type="checkbox" id="show_downloads" class="form-checkbox" />
+          <span class="ml-2">Show Downloads</span>
+        </label>
+      </div>
+      <div>
+        <label class="block font-medium">Google Analytics ID</label>
+        <input type="text" id="ga_id" class="w-full border rounded p-2" placeholder="UA-XXXXX-Y" />
+      </div>
+      <div>
+        <label class="block font-medium">Tags (pisahkan dengan koma)</label>
+        <input type="text" id="tags" class="w-full border rounded p-2" placeholder="jekyll, leap-day, tutorial" />
+      </div>
+      <div>
+        <label class="block font-medium">Content</label>
+        <textarea id="content" rows="6" class="w-full border rounded p-2" placeholder="Tulis konten postingan di sini..."></textarea>
+      </div>
+      <button type="button" id="generate-btn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Generate Markdown</button>
+    </form>
+
+    <div class="mt-6">
+      <label class="block font-medium mb-2">Hasil Front Matter & Content</label>
+      <textarea id="output" rows="12" class="w-full border rounded p-2 font-mono text-sm" readonly></textarea>
+    </div>
+  </div>
+
+  <script>
+    // Set default date ke hari ini
+    document.addEventListener('DOMContentLoaded', () => {
+      const today = new Date().toISOString().substr(0, 10);
+      document.getElementById('date').value = today;
+    });
+
+    // Generate markdown saat tombol diklik
+    document.getElementById('generate-btn').addEventListener('click', () => {
+      const title = document.getElementById('title').value.trim();
+      const date = document.getElementById('date').value;
+      const description = document.getElementById('description').value.trim();
+      const showDownloads = document.getElementById('show_downloads').checked;
+      const gaId = document.getElementById('ga_id').value.trim();
+      const tags = document.getElementById('tags').value
+        .split(',')
+        .map(t => t.trim())
+        .filter(Boolean);
+      const content = document.getElementById('content').value;
+
+      let fm = `---\n`;
+      fm += `title: \"${title}\"\n`;
+      fm += `description: \"${description}\"\n`;
+      fm += `date: ${date}\n`;
+      fm += `show_downloads: ${showDownloads}\n`;
+      if (gaId) fm += `google_analytics: ${gaId}\n`;
+      if (tags.length) fm += `tags: [${tags.map(t => `\"${t}\"`).join(', ')}]\n`;
+      fm += `---\n\n`;
+      fm += content;
+
+      document.getElementById('output').value = fm;
+    });
+  </script>
+</body>
+</html>
