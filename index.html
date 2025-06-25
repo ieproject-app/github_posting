@@ -1,97 +1,245 @@
-import React, { useState } from "react";
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Jekyll Post Markdown Generator</title>
+  <style>
+    body {
+      background: #f0f2f5;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 750px;
+      margin: 32px auto;
+      background: #fff;
+      box-shadow: 0 2px 16px #0001;
+      border-radius: 10px;
+      padding: 32px 24px 24px 24px;
+    }
+    h1 {
+      font-size: 2.1em;
+      margin-bottom: 0.4em;
+      letter-spacing: -1px;
+    }
+    h2 {
+      margin-top: 2em;
+      margin-bottom: 0.6em;
+      font-size: 1.2em;
+      color: #3b3b3b;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 0.2em;
+    }
+    form label {
+      font-weight: 500;
+      margin-top: 1em;
+      margin-bottom: 0.3em;
+      display: block;
+      color: #222;
+    }
+    form input, form textarea {
+      width: 100%;
+      font-size: 1em;
+      padding: 8px 10px;
+      border: 1px solid #bbb;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      box-sizing: border-box;
+    }
+    form textarea {
+      resize: vertical;
+      min-height: 56px;
+    }
+    .btn-generate {
+      background: #0170fe;
+      color: #fff;
+      border: none;
+      padding: 10px 28px;
+      border-radius: 6px;
+      font-size: 1.05em;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+      margin-bottom: 1em;
+      transition: background 0.15s;
+    }
+    .btn-generate:hover {
+      background: #125edb;
+    }
+    .output-section {
+      margin-top: 2.5em;
+      background: #23272f;
+      color: #f4f4f4;
+      border-radius: 8px;
+      padding: 18px 12px 16px 12px;
+      font-family: 'JetBrains Mono', 'Consolas', 'Menlo', 'monospace';
+      font-size: 1em;
+      overflow-x: auto;
+      position: relative;
+    }
+    .output-filename {
+      color: #b3d4fc;
+      font-size: 1em;
+      font-family: 'JetBrains Mono', 'Consolas', 'Menlo', 'monospace';
+      margin-bottom: 0.3em;
+    }
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .tips {
+      margin-top: 2em;
+      font-size: 1em;
+      color: #444;
+      background: #f9fcff;
+      border-radius: 7px;
+      padding: 14px 18px;
+      border-left: 4px solid #0170fe;
+    }
+    .tips ul {
+      margin: 0.6em 0 0 1.3em;
+      padding: 0;
+    }
+    .tips a {
+      color: #0170fe;
+      text-decoration: underline;
+    }
+    .footer {
+      margin: 3em 0 1.2em 0;
+      text-align: center;
+      color: #aaa;
+      font-size: 0.98em;
+    }
+    @media (max-width: 600px) {
+      .container { padding: 12px 3vw; }
+      .output-section { font-size: 0.97em; }
+      .tips { padding: 10px 7px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Jekyll Post Markdown Generator 🚀</h1>
+    <p style="margin-top:0; color:#444; font-size:1.08em;">
+      Buat file postingan <b>Markdown</b> siap pakai untuk <b>GitHub Pages/Jekyll</b>.<br>
+      Isi form berikut, klik <b>Generate Markdown</b>, dan dapatkan file + tips otomatis.
+    </p>
+    <form id="jekyllForm" autocomplete="off">
+      <label for="judul">Judul postingan*</label>
+      <input id="judul" name="judul" required placeholder="Contoh: Cara Membuat Blog Jekyll" />
 
-// Emoji rekomendasi untuk topik umum, bisa diupgrade sesuai kebutuhan
-const emojiMap = {
-  Pendahuluan: "📚",
-  Subjudul1: "💡",
-  Subjudul2: "🛠️",
-  Subjudul3: "🖼️",
-  Kesimpulan: "✅",
-  default: "✍️"
-};
+      <label for="kategori">Kategori utama (maks 2, pisahkan koma)*</label>
+      <input id="kategori" name="kategori" required placeholder="Contoh: tutorial, jekyll" />
 
-// Utility untuk slug judul
-function slugify(text: string) {
-  return text
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-");
-}
+      <label for="penulis">Nama penulis*</label>
+      <input id="penulis" name="penulis" required placeholder="Contoh: Andi Pratama" />
 
-// Utility tanggal
-function getDateStr() {
-  const tzOffset = 7 * 60 * 60 * 1000; // +0700
-  const d = new Date(Date.now() + tzOffset);
-  const pad = (n: number) => n.toString().padStart(2, "0");
-  return (
-    `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}` +
-    ` ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())} +0700`
-  );
-}
+      <label for="deskripsi">Deskripsi singkat (SEO, 1 kalimat)*</label>
+      <input id="deskripsi" name="deskripsi" required placeholder="Contoh: Panduan membuat blog statis dengan Jekyll." />
 
-type FormState = {
-  judul: string;
-  kategori: string[];
-  penulis: string;
-  deskripsi: string;
-  target_pembaca: string;
-  poin_kunci: string[];
-  bahasa_kode: string;
-  nama_file_gambar: string;
-  alt_text_gambar: string;
-};
+      <label for="target_pembaca">Target pembaca</label>
+      <input id="target_pembaca" name="target_pembaca" placeholder="Contoh: Pemula, mahasiswa" />
 
-const defaultForm: FormState = {
-  judul: "",
-  kategori: [],
-  penulis: "",
-  deskripsi: "",
-  target_pembaca: "",
-  poin_kunci: [],
-  bahasa_kode: "",
-  nama_file_gambar: "",
-  alt_text_gambar: ""
-};
+      <label for="poin_kunci">Poin-poin kunci (minimal 3, 1 baris per poin)*</label>
+      <textarea id="poin_kunci" name="poin_kunci" rows="3" required placeholder="Contoh:\nInstalasi Jekyll\nStruktur folder\nMembuat artikel"></textarea>
 
-function getFileName(judul: string) {
-  const date = new Date();
-  const yyyy = date.getFullYear();
-  const mm = (date.getMonth() + 1).toString().padStart(2, "0");
-  const dd = date.getDate().toString().padStart(2, "0");
-  const slug = slugify(judul || "judul-postingan");
-  return `${yyyy}-${mm}-${dd}-${slug}.md`;
-}
+      <label for="bahasa_kode">Bahasa pemrograman untuk blok kode*</label>
+      <input id="bahasa_kode" name="bahasa_kode" required placeholder="Contoh: markdown, python, html, js" />
 
-function getMarkdown(form: FormState) {
-  // Placeholder
-  const judul = form.judul || "Judul Postingan";
-  const kategori = form.kategori.length
-    ? form.kategori.slice(0, 2)
-    : ["kategori1", "kategori2"];
-  const penulis = form.penulis || "Nama Penulis";
-  const deskripsi = form.deskripsi || "Deskripsi singkat untuk SEO.";
-  const target_pembaca = form.target_pembaca || "Pemula";
-  const poin_kunci =
-    form.poin_kunci.length >= 3
-      ? form.poin_kunci
-      : ["Poin penting 1", "Poin penting 2", "Poin penting 3"];
-  const bahasa_kode = form.bahasa_kode || "python";
-  const nama_file_gambar = form.nama_file_gambar
-    ? form.nama_file_gambar.replace(/\s+/g, "-")
-    : "placeholder.jpg";
-  const alt_text_gambar = form.alt_text_gambar || "Deskripsi gambar";
-  const date = getDateStr();
+      <label for="nama_file_gambar">Nama file gambar (opsional, contoh: gambar.jpg)</label>
+      <input id="nama_file_gambar" name="nama_file_gambar" placeholder="Contoh: jekyll-intro.jpg" />
 
-  // Emoji logic
-  const emojiJudul = "📝";
-  const emojiPendahuluan = emojiMap["Pendahuluan"];
-  const emojiSub1 = emojiMap["Subjudul1"];
-  const emojiSub2 = emojiMap["Subjudul2"];
-  const emojiSub3 = emojiMap["Subjudul3"];
-  const emojiKesimpulan = emojiMap["Kesimpulan"];
+      <label for="alt_text_gambar">Alt text gambar (SEO, aksesibilitas)*</label>
+      <input id="alt_text_gambar" name="alt_text_gambar" required placeholder="Contoh: Ilustrasi Jekyll" />
 
-  return `---
+      <button type="submit" class="btn-generate">Generate Markdown</button>
+    </form>
+
+    <div id="output" style="display:none;">
+      <h2>Hasil File Markdown</h2>
+      <div class="output-filename"><b>Nama file:</b> <code id="filename"></code></div>
+      <div class="output-section">
+        <pre id="markdown"></pre>
+      </div>
+      <div class="tips">
+        <b>Tips Otomatis:</b>
+        <ul>
+          <li>SEO: Pastikan keyword muncul di judul, deskripsi, dan heading.</li>
+          <li>Gunakan alt text deskriptif pada gambar.</li>
+          <li>Tulis deskripsi 1 kalimat untuk front matter.</li>
+          <li>Mobile Friendly: gambar max lebar 1200px, tabel sederhana, bullet points.</li>
+          <li>Emoji: tambahkan emoji relevan di judul & subjudul.</li>
+          <li>Format nama file: <i>YYYY-MM-DD-judul-dengan-hyphen.md</i></li>
+          <li>Rekomendasi gambar gratis: <a href="https://unsplash.com/" target="_blank">Unsplash</a>, <a href="https://www.pexels.com/" target="_blank">Pexels</a>, <a href="https://pixabay.com/" target="_blank">Pixabay</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer">
+      &copy; 2025 | Markdown Generator by <a href="https://github.com/ieproject-app" target="_blank" style="color:#0170fe;">ieproject-app</a>
+    </div>
+  </div>
+  <script>
+    function slugify(text) {
+      return text.toLowerCase()
+        .replace(/[^\w\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-");
+    }
+    function getTodayStr() {
+      const d = new Date();
+      const yyyy = d.getFullYear();
+      const mm = (d.getMonth() + 1).toString().padStart(2, '0');
+      const dd = d.getDate().toString().padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+    function getDateTimeStr() {
+      const d = new Date();
+      const pad = n => n.toString().padStart(2, "0");
+      // +0700 timezone (manual offset)
+      const local = new Date(d.getTime() + (7*60*60*1000));
+      return `${local.getUTCFullYear()}-${pad(local.getUTCMonth()+1)}-${pad(local.getUTCDate())} ${pad(local.getUTCHours())}:${pad(local.getUTCMinutes())}:${pad(local.getUTCSeconds())} +0700`;
+    }
+    function getFileName(judul) {
+      const date = getTodayStr();
+      const slug = judul ? slugify(judul) : "judul-postingan";
+      return `${date}-${slug}.md`;
+    }
+    function getMarkdown(form) {
+      // Placeholder logic
+      const judul = form.judul || "Judul Postingan";
+      const kategori = form.kategori
+        ? form.kategori.split(",").map(x => x.trim()).filter(x => x).slice(0,2)
+        : ["kategori1", "kategori2"];
+      const penulis = form.penulis || "Nama Penulis";
+      const deskripsi = form.deskripsi || "Deskripsi singkat untuk SEO.";
+      const target_pembaca = form.target_pembaca || "Pemula";
+      const poin_kunci = form.poin_kunci
+        ? form.poin_kunci.split("\n").map(x => x.trim()).filter(x => x).length >= 3
+          ? form.poin_kunci.split("\n").map(x => x.trim()).filter(x => x)
+          : ["Poin penting 1", "Poin penting 2", "Poin penting 3"]
+        : ["Poin penting 1", "Poin penting 2", "Poin penting 3"];
+      const bahasa_kode = form.bahasa_kode || "python";
+      const nama_file_gambar = form.nama_file_gambar
+        ? form.nama_file_gambar.replace(/\s+/g, "-")
+        : "placeholder.jpg";
+      const alt_text_gambar = form.alt_text_gambar || "Deskripsi gambar";
+      const date = getDateTimeStr();
+
+      // Emoji logic (bisa di-custom sesuai preferensi)
+      const emojiJudul = "📝";
+      const emojiPendahuluan = "📚";
+      const emojiSub1 = "💡";
+      const emojiSub2 = "🛠️";
+      const emojiSub3 = "🖼️";
+      const emojiKesimpulan = "✅";
+
+      return (
+``
+\`\`\`markdown
+---
 layout: post
 title: "${judul} ${emojiJudul}"
 date: ${date}
@@ -107,7 +255,7 @@ Selamat datang! Artikel ini ditujukan untuk ${target_pembaca}. Pada postingan ka
 
 ## Poin Penting ${emojiSub1}
 
-${poin_kunci.map((p) => `- ${p}`).join("\n")}
+${poin_kunci.map(p => `- ${p}`).join('\n')}
 
 ## Contoh Kode ${emojiSub2}
 
@@ -138,145 +286,25 @@ Demikian pembahasan singkat mengenai ${judul.toLowerCase()}. Semoga bermanfaat!
 
 _Simpan file di folder_ **_posts/_** _dan upload gambar ke_ **/assets/img/**_
 
+\`\`\`
+``
+      );
+    }
 
-<!--
-Tips Otomatis:
-- SEO: Pastikan keyword muncul di judul, deskripsi, dan heading.
-- Gunakan alt text deskriptif pada gambar.
-- Tulis deskripsi 1 kalimat untuk front matter.
-- Mobile Friendly: gambar max lebar 1200px, tabel sederhana, bullet points.
-- Emoji: tambahkan emoji relevan di judul & subjudul.
-- Format nama file: YYYY-MM-DD-judul-dengan-hyphen.md
-- Rekomendasi gambar gratis: Unsplash, Pexels, Pixabay.
--->
-`;
-}
-
-export default function WebToolsGenerator() {
-  const [form, setForm] = useState<FormState>(defaultForm);
-  const [markdown, setMarkdown] = useState("");
-  const [fileName, setFileName] = useState("");
-
-  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
-    const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: value
-    }));
-  }
-
-  function handleKategoriChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const arr = e.target.value
-      .split(",")
-      .map((x) => x.trim())
-      .filter((x) => !!x);
-    setForm((prev) => ({
-      ...prev,
-      kategori: arr
-    }));
-  }
-
-  function handlePoinChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
-    const arr = e.target.value
-      .split("\n")
-      .map((x) => x.trim())
-      .filter((x) => !!x);
-    setForm((prev) => ({
-      ...prev,
-      poin_kunci: arr
-    }));
-  }
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const md = getMarkdown(form);
-    setMarkdown(md);
-    setFileName(getFileName(form.judul));
-  }
-
-  return (
-    <div style={{ maxWidth: 700, margin: "2rem auto", fontFamily: "sans-serif" }}>
-      <h2>Web Tools: Jekyll Post Generator 🚀</h2>
-      <form onSubmit={handleSubmit} style={{ background: "#f9f9f9", padding: 20, borderRadius: 8 }}>
-        <label>
-          Judul postingan*<br />
-          <input name="judul" value={form.judul} onChange={handleChange} required style={{ width: "100%" }} />
-        </label>
-        <br /><br />
-        <label>
-          Kategori utama (maks 2, pisahkan koma)*<br />
-          <input name="kategori" value={form.kategori.join(", ")} onChange={handleKategoriChange} required style={{ width: "100%" }} />
-        </label>
-        <br /><br />
-        <label>
-          Nama penulis*<br />
-          <input name="penulis" value={form.penulis} onChange={handleChange} required style={{ width: "100%" }} />
-        </label>
-        <br /><br />
-        <label>
-          Deskripsi singkat (SEO, 1 kalimat)*<br />
-          <input name="deskripsi" value={form.deskripsi} onChange={handleChange} required style={{ width: "100%" }} />
-        </label>
-        <br /><br />
-        <label>
-          Target pembaca<br />
-          <input name="target_pembaca" value={form.target_pembaca} onChange={handleChange} style={{ width: "100%" }} />
-        </label>
-        <br /><br />
-        <label>
-          Poin-poin kunci (minimal 3, 1 baris per poin)*<br />
-          <textarea name="poin_kunci" value={form.poin_kunci.join("\n")} onChange={handlePoinChange} rows={3} required style={{ width: "100%" }} />
-        </label>
-        <br /><br />
-        <label>
-          Bahasa pemrograman untuk blok kode (python, html, js, dll)*<br />
-          <input name="bahasa_kode" value={form.bahasa_kode} onChange={handleChange} required style={{ width: "100%" }} />
-        </label>
-        <br /><br />
-        <label>
-          Nama file gambar (opsional, contoh: gambar.jpg)<br />
-          <input name="nama_file_gambar" value={form.nama_file_gambar} onChange={handleChange} style={{ width: "100%" }} />
-        </label>
-        <br /><br />
-        <label>
-          Alt text gambar (SEO, aksesibilitas)*<br />
-          <input name="alt_text_gambar" value={form.alt_text_gambar} onChange={handleChange} required style={{ width: "100%" }} />
-        </label>
-        <br /><br />
-        <button type="submit" style={{ padding: "8px 24px", fontWeight: "bold" }}>
-          Generate Markdown
-        </button>
-      </form>
-
-      {markdown && (
-        <>
-          <h3>Hasil File Markdown:</h3>
-          <div style={{ background: "#222", color: "#eee", padding: 10, borderRadius: 5, marginTop: 20 }}>
-            <div style={{ fontSize: "0.95em", marginBottom: 5 }}>
-              <b>Nama file:</b> <code>{fileName}</code>
-            </div>
-            <pre style={{ whiteSpace: "pre-wrap", overflowX: "auto" }}>
-              {``
-                + "```markdown name=" + fileName + "\n"
-                + markdown
-                + "```"
-              }
-            </pre>
-          </div>
-          <div style={{ marginTop: 20, fontSize: "0.95em", color: "#555" }}>
-            <b>Tips Otomatis:</b>
-            <ul>
-              <li>SEO: Pastikan keyword muncul di judul, deskripsi, dan heading.</li>
-              <li>Gunakan alt text deskriptif pada gambar.</li>
-              <li>Tulis deskripsi 1 kalimat untuk front matter.</li>
-              <li>Mobile Friendly: gambar max lebar 1200px, tabel sederhana, bullet points.</li>
-              <li>Emoji: tambahkan emoji relevan di judul & subjudul.</li>
-              <li>Format nama file: <i>YYYY-MM-DD-judul-dengan-hyphen.md</i></li>
-              <li>Rekomendasi gambar gratis: <a href="https://unsplash.com/">Unsplash</a>, <a href="https://www.pexels.com/">Pexels</a>, <a href="https://pixabay.com/">Pixabay</a></li>
-            </ul>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
+    document.getElementById("jekyllForm").onsubmit = function(ev) {
+      ev.preventDefault();
+      const form = Object.fromEntries(
+        Array.from(this.elements)
+        .filter(e => e.name)
+        .map(e => [e.name, e.value])
+      );
+      const filename = getFileName(form.judul || "");
+      const markdown = getMarkdown(form);
+      document.getElementById("filename").textContent = filename;
+      document.getElementById("markdown").textContent = markdown.trim();
+      document.getElementById("output").style.display = "block";
+      window.scrollTo({ top: document.getElementById("output").offsetTop-40, behavior: "smooth" });
+    };
+  </script>
+</body>
+</html>
