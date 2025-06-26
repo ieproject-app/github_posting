@@ -1,310 +1,419 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Jekyll Post Markdown Generator</title>
-  <style>
-    body {
-      background: #f0f2f5;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      max-width: 750px;
-      margin: 32px auto;
-      background: #fff;
-      box-shadow: 0 2px 16px #0001;
-      border-radius: 10px;
-      padding: 32px 24px 24px 24px;
-    }
-    h1 {
-      font-size: 2.1em;
-      margin-bottom: 0.4em;
-      letter-spacing: -1px;
-    }
-    h2 {
-      margin-top: 2em;
-      margin-bottom: 0.6em;
-      font-size: 1.2em;
-      color: #3b3b3b;
-      border-bottom: 1px solid #eee;
-      padding-bottom: 0.2em;
-    }
-    form label {
-      font-weight: 500;
-      margin-top: 1em;
-      margin-bottom: 0.3em;
-      display: block;
-      color: #222;
-    }
-    form input, form textarea {
-      width: 100%;
-      font-size: 1em;
-      padding: 8px 10px;
-      border: 1px solid #bbb;
-      border-radius: 5px;
-      margin-bottom: 10px;
-      box-sizing: border-box;
-    }
-    form textarea {
-      resize: vertical;
-      min-height: 56px;
-    }
-    .btn-generate {
-      background: #0170fe;
-      color: #fff;
-      border: none;
-      padding: 10px 28px;
-      border-radius: 6px;
-      font-size: 1.05em;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 10px;
-      margin-bottom: 1em;
-      transition: background 0.15s;
-    }
-    .btn-generate:hover {
-      background: #125edb;
-    }
-    .output-section {
-      margin-top: 2.5em;
-      background: #23272f;
-      color: #f4f4f4;
-      border-radius: 8px;
-      padding: 18px 12px 16px 12px;
-      font-family: 'JetBrains Mono', 'Consolas', 'Menlo', 'monospace';
-      font-size: 1em;
-      overflow-x: auto;
-      position: relative;
-    }
-    .output-filename {
-      color: #b3d4fc;
-      font-size: 1em;
-      font-family: 'JetBrains Mono', 'Consolas', 'Menlo', 'monospace';
-      margin-bottom: 0.3em;
-    }
-    pre {
-      margin: 0;
-      white-space: pre-wrap;
-      word-break: break-all;
-    }
-    .tips {
-      margin-top: 2em;
-      font-size: 1em;
-      color: #444;
-      background: #f9fcff;
-      border-radius: 7px;
-      padding: 14px 18px;
-      border-left: 4px solid #0170fe;
-    }
-    .tips ul {
-      margin: 0.6em 0 0 1.3em;
-      padding: 0;
-    }
-    .tips a {
-      color: #0170fe;
-      text-decoration: underline;
-    }
-    .footer {
-      margin: 3em 0 1.2em 0;
-      text-align: center;
-      color: #aaa;
-      font-size: 0.98em;
-    }
-    @media (max-width: 600px) {
-      .container { padding: 12px 3vw; }
-      .output-section { font-size: 0.97em; }
-      .tips { padding: 10px 7px; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Pages Post Generator</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #24292e;
+        }
+        h1 {
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: 0.3em;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        input[type="text"], textarea, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #d1d5da;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+        textarea {
+            min-height: 100px;
+            font-family: monospace;
+        }
+        button {
+            background-color: #2ea44f;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #2c974b;
+        }
+        .preview {
+            background-color: #f6f8fa;
+            padding: 15px;
+            border-radius: 3px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            overflow-x: auto;
+        }
+        .section {
+            margin-bottom: 20px;
+            border: 1px solid #e1e4e8;
+            padding: 15px;
+            border-radius: 3px;
+        }
+        .section-title {
+            margin-top: 0;
+            cursor: pointer;
+        }
+        .two-columns {
+            display: flex;
+            gap: 10px;
+        }
+        .two-columns > div {
+            flex: 1;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Jekyll Post Markdown Generator 🚀</h1>
-    <p style="margin-top:0; color:#444; font-size:1.08em;">
-      Buat file postingan <b>Markdown</b> siap pakai untuk <b>GitHub Pages/Jekyll</b>.<br>
-      Isi form berikut, klik <b>Generate Markdown</b>, dan dapatkan file + tips otomatis.
-    </p>
-    <form id="jekyllForm" autocomplete="off">
-      <label for="judul">Judul postingan*</label>
-      <input id="judul" name="judul" required placeholder="Contoh: Cara Membuat Blog Jekyll" />
-
-      <label for="kategori">Kategori utama (maks 2, pisahkan koma)*</label>
-      <input id="kategori" name="kategori" required placeholder="Contoh: tutorial, jekyll" />
-
-      <label for="penulis">Nama penulis*</label>
-      <input id="penulis" name="penulis" required placeholder="Contoh: Andi Pratama" />
-
-      <label for="deskripsi">Deskripsi singkat (SEO, 1 kalimat)*</label>
-      <input id="deskripsi" name="deskripsi" required placeholder="Contoh: Panduan membuat blog statis dengan Jekyll." />
-
-      <label for="target_pembaca">Target pembaca</label>
-      <input id="target_pembaca" name="target_pembaca" placeholder="Contoh: Pemula, mahasiswa" />
-
-      <label for="poin_kunci">Poin-poin kunci (minimal 3, 1 baris per poin)*</label>
-      <textarea id="poin_kunci" name="poin_kunci" rows="3" required placeholder="Contoh:\nInstalasi Jekyll\nStruktur folder\nMembuat artikel"></textarea>
-
-      <label for="bahasa_kode">Bahasa pemrograman untuk blok kode*</label>
-      <input id="bahasa_kode" name="bahasa_kode" required placeholder="Contoh: markdown, python, html, js" />
-
-      <label for="nama_file_gambar">Nama file gambar (opsional, contoh: gambar.jpg)</label>
-      <input id="nama_file_gambar" name="nama_file_gambar" placeholder="Contoh: jekyll-intro.jpg" />
-
-      <label for="alt_text_gambar">Alt text gambar (SEO, aksesibilitas)*</label>
-      <input id="alt_text_gambar" name="alt_text_gambar" required placeholder="Contoh: Ilustrasi Jekyll" />
-
-      <button type="submit" class="btn-generate">Generate Markdown</button>
-    </form>
-
-    <div id="output" style="display:none;">
-      <h2>Hasil File Markdown</h2>
-      <div class="output-filename"><b>Nama file:</b> <code id="filename"></code></div>
-      <div class="output-section">
-        <pre id="markdown"></pre>
-      </div>
-      <div class="tips">
-        <b>Tips Otomatis:</b>
-        <ul>
-          <li>SEO: Pastikan keyword muncul di judul, deskripsi, dan heading.</li>
-          <li>Gunakan alt text deskriptif pada gambar.</li>
-          <li>Tulis deskripsi 1 kalimat untuk front matter.</li>
-          <li>Mobile Friendly: gambar max lebar 1200px, tabel sederhana, bullet points.</li>
-          <li>Emoji: tambahkan emoji relevan di judul & subjudul.</li>
-          <li>Format nama file: <i>YYYY-MM-DD-judul-dengan-hyphen.md</i></li>
-          <li>Rekomendasi gambar gratis: <a href="https://unsplash.com/" target="_blank">Unsplash</a>, <a href="https://www.pexels.com/" target="_blank">Pexels</a>, <a href="https://pixabay.com/" target="_blank">Pixabay</a></li>
-        </ul>
-      </div>
+    <h1>GitHub Pages Post Generator</h1>
+    
+    <div class="two-columns">
+        <div class="form-group">
+            <label for="title">Post Title:</label>
+            <input type="text" id="title" placeholder="Markdown examples">
+        </div>
+        
+        <div class="form-group">
+            <label for="date">Date:</label>
+            <input type="text" id="date" placeholder="YYYY-MM-DD" value="">
+        </div>
     </div>
-    <div class="footer">
-      &copy; 2025 | Markdown Generator by <a href="https://github.com/ieproject-app" target="_blank" style="color:#0170fe;">ieproject-app</a>
+    
+    <div class="form-group">
+        <label for="intro">Introduction Paragraph:</label>
+        <textarea id="intro" placeholder="Lorem ipsum dolor sit amet..."></textarea>
     </div>
-  </div>
-  <script>
-    function slugify(text) {
-      return text.toLowerCase()
-        .replace(/[^\w\s-]/g, "")
-        .replace(/\s+/g, "-")
-        .replace(/-+/g, "-");
-    }
-    function getTodayStr() {
-      const d = new Date();
-      const yyyy = d.getFullYear();
-      const mm = (d.getMonth() + 1).toString().padStart(2, '0');
-      const dd = d.getDate().toString().padStart(2, '0');
-      return `${yyyy}-${mm}-${dd}`;
-    }
-    function getDateTimeStr() {
-      const d = new Date();
-      const pad = n => n.toString().padStart(2, "0");
-      // +0700 timezone (manual offset)
-      const local = new Date(d.getTime() + (7*60*60*1000));
-      return `${local.getUTCFullYear()}-${pad(local.getUTCMonth()+1)}-${pad(local.getUTCDate())} ${pad(local.getUTCHours())}:${pad(local.getUTCMinutes())}:${pad(local.getUTCSeconds())} +0700`;
-    }
-    function getFileName(judul) {
-      const date = getTodayStr();
-      const slug = judul ? slugify(judul) : "judul-postingan";
-      return `${date}-${slug}.md`;
-    }
-    function getMarkdown(form) {
-      // Placeholder logic
-      const judul = form.judul || "Judul Postingan";
-      const kategori = form.kategori
-        ? form.kategori.split(",").map(x => x.trim()).filter(x => x).slice(0,2)
-        : ["kategori1", "kategori2"];
-      const penulis = form.penulis || "Nama Penulis";
-      const deskripsi = form.deskripsi || "Deskripsi singkat untuk SEO.";
-      const target_pembaca = form.target_pembaca || "Pemula";
-      const poin_kunci = form.poin_kunci
-        ? form.poin_kunci.split("\n").map(x => x.trim()).filter(x => x).length >= 3
-          ? form.poin_kunci.split("\n").map(x => x.trim()).filter(x => x)
-          : ["Poin penting 1", "Poin penting 2", "Poin penting 3"]
-        : ["Poin penting 1", "Poin penting 2", "Poin penting 3"];
-      const bahasa_kode = form.bahasa_kode || "python";
-      const nama_file_gambar = form.nama_file_gambar
-        ? form.nama_file_gambar.replace(/\s+/g, "-")
-        : "placeholder.jpg";
-      const alt_text_gambar = form.alt_text_gambar || "Deskripsi gambar";
-      const date = getDateTimeStr();
+    
+    <div class="section">
+        <h3 class="section-title" onclick="toggleSection('headings')">+ Headings</h3>
+        <div id="headings-section" style="display:none;">
+            <button onclick="addHeading(2)">Add h2 Heading</button>
+            <button onclick="addHeading(3)">Add h3 Heading</button>
+            <button onclick="addHeading(4)">Add h4 Heading</button>
+            <div class="form-group">
+                <label for="heading-text">Heading Text:</label>
+                <input type="text" id="heading-text" placeholder="Heading text here">
+            </div>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h3 class="section-title" onclick="toggleSection('blockquotes')">+ Blockquotes</h3>
+        <div id="blockquotes-section" style="display:none;">
+            <div class="form-group">
+                <label for="blockquote-text">Quote Text:</label>
+                <textarea id="blockquote-text" placeholder="My mom always said life was like a box of chocolates..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="blockquote-author">Author (optional):</label>
+                <input type="text" id="blockquote-author" placeholder="Hal Incandenza">
+            </div>
+            <button onclick="addBlockquote()">Add Blockquote</button>
+            <button onclick="addMultilineBlockquote()">Add Multiline Blockquote</button>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h3 class="section-title" onclick="toggleSection('tables')">+ Tables</h3>
+        <div id="tables-section" style="display:none;">
+            <div class="form-group">
+                <label for="table-cols">Number of Columns:</label>
+                <input type="number" id="table-cols" min="2" max="6" value="4">
+            </div>
+            <div class="form-group">
+                <label for="table-rows">Number of Rows:</label>
+                <input type="number" id="table-rows" min="2" max="20" value="4">
+            </div>
+            <button onclick="addTable()">Add Table</button>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h3 class="section-title" onclick="toggleSection('code')">+ Code Blocks</h3>
+        <div id="code-section" style="display:none;">
+            <div class="form-group">
+                <label for="code-language">Language:</label>
+                <input type="text" id="code-language" placeholder="javascript">
+            </div>
+            <div class="form-group">
+                <label for="code-content">Code:</label>
+                <textarea id="code-content" placeholder="function foo() {\n  return 'bar';\n}"></textarea>
+            </div>
+            <button onclick="addCodeBlock()">Add Code Block</button>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h3 class="section-title" onclick="toggleSection('lists')">+ Lists</h3>
+        <div id="lists-section" style="display:none;">
+            <div class="form-group">
+                <label for="list-items">List Items (one per line):</label>
+                <textarea id="list-items" placeholder="First item\nSecond item\nThird item"></textarea>
+            </div>
+            <button onclick="addUnorderedList()">Add Unordered List</button>
+            <button onclick="addOrderedList()">Add Ordered List</button>
+            <button onclick="addNestedList()">Add Nested List</button>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h3 class="section-title" onclick="toggleSection('misc')">+ Miscellaneous</h3>
+        <div id="misc-section" style="display:none;">
+            <button onclick="addHorizontalRule()">Add Horizontal Rule</button>
+            <button onclick="addImage()">Add Image</button>
+            <button onclick="addLink()">Add Link</button>
+        </div>
+    </div>
+    
+    <button onclick="generatePost()" style="background-color: #0366d6;">Generate Post</button>
+    
+    <div class="form-group">
+        <label>Generated Markdown:</label>
+        <div class="preview" id="output"></div>
+        <button onclick="copyToClipboard()">Copy to Clipboard</button>
+        <button onclick="downloadMarkdown()">Download .md File</button>
+    </div>
 
-      // Emoji logic (bisa di-custom sesuai preferensi)
-      const emojiJudul = "📝";
-      const emojiPendahuluan = "📚";
-      const emojiSub1 = "💡";
-      const emojiSub2 = "🛠️";
-      const emojiSub3 = "🖼️";
-      const emojiKesimpulan = "✅";
-
-      return (
-``
-\`\`\`markdown
----
-layout: post
-title: "${judul} ${emojiJudul}"
-date: ${date}
-categories: [${kategori.join(", ")}]
-author: ${penulis}
-image: /assets/img/${nama_file_gambar}
-description: "${deskripsi}"
----
-
-## Pendahuluan ${emojiPendahuluan}
-
-Selamat datang! Artikel ini ditujukan untuk ${target_pembaca}. Pada postingan kali ini kita akan membahas ${judul.toLowerCase()}.
-
-## Poin Penting ${emojiSub1}
-
-${poin_kunci.map(p => `- ${p}`).join('\n')}
-
-## Contoh Kode ${emojiSub2}
-
-Berikut contoh kode terkait topik ini:
-
-\`\`\`${bahasa_kode}
-# Kode contoh di sini
-\`\`\`
-
-## Ilustrasi ${emojiSub3}
-
-![${alt_text_gambar}](/assets/img/${nama_file_gambar})
-
-| Kolom 1 | Kolom 2 |
-|---------|---------|
-| Baris 1 | Data    |
-| Baris 2 | Data    |
-
-## Kesimpulan ${emojiKesimpulan}
-
-Demikian pembahasan singkat mengenai ${judul.toLowerCase()}. Semoga bermanfaat!
-
----
-
-**Apa pendapatmu tentang topik ini? Yuk diskusi di kolom komentar!**
-
----
-
-_Simpan file di folder_ **_posts/_** _dan upload gambar ke_ **/assets/img/**_
-
-\`\`\`
-``
-      );
-    }
-
-    document.getElementById("jekyllForm").onsubmit = function(ev) {
-      ev.preventDefault();
-      const form = Object.fromEntries(
-        Array.from(this.elements)
-        .filter(e => e.name)
-        .map(e => [e.name, e.value])
-      );
-      const filename = getFileName(form.judul || "");
-      const markdown = getMarkdown(form);
-      document.getElementById("filename").textContent = filename;
-      document.getElementById("markdown").textContent = markdown.trim();
-      document.getElementById("output").style.display = "block";
-      window.scrollTo({ top: document.getElementById("output").offsetTop-40, behavior: "smooth" });
-    };
-  </script>
+    <script>
+        // Set default date to today
+        document.getElementById('date').value = new Date().toISOString().split('T')[0];
+        
+        function toggleSection(section) {
+            const element = document.getElementById(section + '-section');
+            element.style.display = element.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        function addHeading(level) {
+            const text = document.getElementById('heading-text').value || `Heading ${level}`;
+            const content = document.getElementById('intro');
+            content.value += `\n\n${'#'.repeat(level)} ${text}\n`;
+        }
+        
+        function addBlockquote() {
+            const text = document.getElementById('blockquote-text').value || 'Quote text here';
+            const author = document.getElementById('blockquote-author').value;
+            
+            let blockquote = `> ${text}`;
+            if (author) {
+                blockquote += `\n> \n> – _${author}_`;
+            }
+            
+            const content = document.getElementById('intro');
+            content.value += `\n\n${blockquote}\n`;
+        }
+        
+        function addMultilineBlockquote() {
+            const text = document.getElementById('blockquote-text').value || 'Multiline quote text here';
+            const author = document.getElementById('blockquote-author').value;
+            
+            const lines = text.split('\n');
+            let blockquote = lines.map(line => `> ${line}`).join('\n> \n');
+            
+            if (author) {
+                blockquote += `\n> \n> – _${author}_`;
+            }
+            
+            const content = document.getElementById('intro');
+            content.value += `\n\n${blockquote}\n`;
+        }
+        
+        function addTable() {
+            const cols = parseInt(document.getElementById('table-cols').value) || 4;
+            const rows = parseInt(document.getElementById('table-rows').value) || 4;
+            
+            let table = '';
+            
+            // Header
+            table += '|';
+            for (let i = 1; i <= cols; i++) {
+                table += ` Title ${i} |`;
+            }
+            table += '\n|';
+            
+            // Header separator
+            for (let i = 1; i <= cols; i++) {
+                table += '---|';
+            }
+            table += '\n';
+            
+            // Rows
+            for (let r = 1; r <= rows; r++) {
+                table += '|';
+                for (let c = 1; c <= cols; c++) {
+                    const entryNum = (r - 1) * cols + c;
+                    let entryText = '';
+                    
+                    switch (entryNum % 16) {
+                        case 1: entryText = 'First'; break;
+                        case 2: entryText = 'Second'; break;
+                        case 3: entryText = 'Third'; break;
+                        case 4: entryText = 'Fourth'; break;
+                        case 5: entryText = 'Fifth'; break;
+                        case 6: entryText = 'Sixth'; break;
+                        case 7: entryText = 'Seventh'; break;
+                        case 8: entryText = 'Eighth'; break;
+                        case 9: entryText = 'Ninth'; break;
+                        case 10: entryText = 'Tenth'; break;
+                        case 11: entryText = 'Eleventh'; break;
+                        case 12: entryText = 'Twelfth'; break;
+                        case 13: entryText = 'Thirteenth'; break;
+                        case 14: entryText = 'Fourteenth'; break;
+                        case 15: entryText = 'Fifteenth'; break;
+                        case 0: entryText = 'Sixteenth'; break;
+                    }
+                    
+                    table += ` ${entryText} entry |`;
+                }
+                table += '\n';
+            }
+            
+            const content = document.getElementById('intro');
+            content.value += `\n\n${table}\n`;
+        }
+        
+        function addCodeBlock() {
+            const language = document.getElementById('code-language').value || 'text';
+            const code = document.getElementById('code-content').value;
+            
+            const content = document.getElementById('intro');
+            content.value += `\n\n\`\`\`${language}\n${code}\n\`\`\`\n`;
+            
+            // Clear fields
+            document.getElementById('code-language').value = '';
+            document.getElementById('code-content').value = '';
+        }
+        
+        function addUnorderedList() {
+            const items = document.getElementById('list-items').value.split('\n').filter(item => item.trim() !== '');
+            
+            if (items.length === 0) {
+                items.push('First item', 'Second item', 'Third item');
+            }
+            
+            const list = items.map(item => `* ${item}`).join('\n');
+            
+            const content = document.getElementById('intro');
+            content.value += `\n\n${list}\n`;
+        }
+        
+        function addOrderedList() {
+            const items = document.getElementById('list-items').value.split('\n').filter(item => item.trim() !== '');
+            
+            if (items.length === 0) {
+                items.push('First item', 'Second item', 'Third item');
+            }
+            
+            const list = items.map((item, index) => `${index + 1}. ${item}`).join('\n');
+            
+            const content = document.getElementById('intro');
+            content.value += `\n\n${list}\n`;
+        }
+        
+        function addNestedList() {
+            const items = document.getElementById('list-items').value.split('\n').filter(item => item.trim() !== '');
+            
+            if (items.length === 0) {
+                items.push('First item', 'Second item', 'Third item', 'First nested item', 'Second nested item');
+            }
+            
+            let list = '';
+            list += `* ${items[0] || 'First item'}\n`;
+            list += `* ${items[1] || 'Second item'}\n`;
+            list += `* ${items[2] || 'Third item'}\n`;
+            list += `    * ${items[3] || 'First nested item'}\n`;
+            list += `    * ${items[4] || 'Second nested item'}\n`;
+            
+            const content = document.getElementById('intro');
+            content.value += `\n\n${list}\n`;
+        }
+        
+        function addHorizontalRule() {
+            const content = document.getElementById('intro');
+            content.value += '\n\n---\n\n';
+        }
+        
+        function addImage() {
+            const url = prompt("Enter image URL:");
+            const alt = prompt("Enter alt text:");
+            
+            if (url) {
+                const content = document.getElementById('intro');
+                content.value += `\n\n![${alt || 'image'}](${url})\n`;
+            }
+        }
+        
+        function addLink() {
+            const text = prompt("Enter link text:");
+            const url = prompt("Enter URL:");
+            
+            if (text && url) {
+                const content = document.getElementById('intro');
+                content.value += `\n\n[${text}](${url})\n`;
+            }
+        }
+        
+        function generatePost() {
+            const title = document.getElementById('title').value;
+            const date = document.getElementById('date').value;
+            const intro = document.getElementById('intro').value;
+            
+            let frontMatter = `---\ntitle:  "${title || 'Markdown examples'}"\n`;
+            frontMatter += `layout: post\n`;
+            frontMatter += `---\n\n`;
+            
+            let fullContent = frontMatter + intro;
+            
+            document.getElementById('output').textContent = fullContent;
+        }
+        
+        function copyToClipboard() {
+            const output = document.getElementById('output');
+            const range = document.createRange();
+            range.selectNode(output);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            document.execCommand('copy');
+            window.getSelection().removeAllRanges();
+            alert('Copied to clipboard!');
+        }
+        
+        function downloadMarkdown() {
+            const content = document.getElementById('output').textContent;
+            if (!content) {
+                alert('Please generate the post first');
+                return;
+            }
+            
+            const title = document.getElementById('title').value || 'markdown-examples';
+            const date = document.getElementById('date').value || '';
+            
+            let filename = date ? `${date}-${title.toLowerCase().replace(/ /g, '-')}.md` : `${title.toLowerCase().replace(/ /g, '-')}.md`;
+            
+            const blob = new Blob([content], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
 </body>
 </html>
